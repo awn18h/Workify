@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "18808011052",
+    "project_id": "workify-auth",
+    "storage_bucket": "workify-auth.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:18808011052:android:07441f4c0a386f7fb4d489",
+        "android_client_info": {
+          "package_name": "com.example.workify_prototype"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "18808011052-nlrs9n96minlv9iojpkoi23u823o1kl7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.workify_prototype",
+            "certificate_hash": "824bbe1b7fd43d6bf18a82b13ec4629aa59a4e53"
+          }
+        },
+        {
+          "client_id": "18808011052-kj5drrem81pt7jkkblcltg18np9rduge.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnDEKZPEn8mXnx1feMzGftnnm6TMpDh4c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "18808011052-kj5drrem81pt7jkkblcltg18np9rduge.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
