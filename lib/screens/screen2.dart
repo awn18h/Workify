@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:workify_prototype/loginscreen/signin_screen.dart';
+import 'package:workify_prototype/screens/loginscreen/signin_screen.dart';
+// import 'package:workify_prototype/loginscreen/signin_screen.dart';
 
 class QuestionScreenTwo extends StatefulWidget {
   const QuestionScreenTwo({super.key});
@@ -74,7 +75,7 @@ class _QuestionScreenTwoState extends State<QuestionScreenTwo> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
+                            builder: (context) =>  LoginScreen(),
                           ),
                         );
                       },

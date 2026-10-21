@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart';
+import '../../services/auth_service.dart';
 import 'signup_screen.dart';
-import '../screens/home_screen.dart';
+import '../home_screen.dart';
 import 'forgot_password_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'phone_login_screen.dart';

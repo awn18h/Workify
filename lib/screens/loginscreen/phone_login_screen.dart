@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart';
-import '../screens/home_screen.dart';
+import '../../services/auth_service.dart';
+import '../home_screen.dart';
 import 'signin_screen.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
