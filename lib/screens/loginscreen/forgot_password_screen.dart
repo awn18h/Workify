@@ -42,7 +42,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => isLoading = true);
 
     try {
-      await _authService.resetPassword(email);
+      await AuthService.resendPassword(email);
       if (!mounted) return;
       setState(() => emailSent = true);
     } on FirebaseAuthException catch (e) {

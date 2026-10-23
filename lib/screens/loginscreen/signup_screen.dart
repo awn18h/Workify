@@ -61,13 +61,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() => isLoading = true);
 
     try {
-      final user = await _authService.signUp(
-        name: name,
+      final credential = await AuthService.signUp(
+        context: context,
+        displayName: name,
         email: email,
         password: password,
       );
       if (!mounted) return;
-      _showMessage('Account created for ${user?.email}');
+      _showMessage('Account created for ${credential?.user!.email}');
       Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
       debugPrint('FirebaseAuthException: ${e.code}');

@@ -1,107 +1,145 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+class AuthException implements Exception {
+  String mas;
+  AuthException({required this.mas});
+}
+
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  static const String _googleServerClientId =
-      '18808011052-kj5drrem81pt7jkkblcltg18np9rduge.apps.googleusercontent.com';
-
-  static bool _googleInitialized = false;
-
-  Future<void> _initGoogleSignIn() async {
-    if (_googleInitialized) return;
-    await GoogleSignIn.instance.initialize(
-      serverClientId: _googleServerClientId,
-    );
-    _googleInitialized = true;
-  }
-
-  Future<User?> signIn({
-    required String email,
-    required String password,
-  }) async {
-    final UserCredential credential = await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    return credential.user;
-  }
-
-  Future<User?> signUp({
-    required String name,
-    required String email,
-    required String password,
-  }) async {
-    final UserCredential credential =
-        await _auth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    await credential.user?.updateDisplayName(name);
-    return credential.user;
-  }
-
-  Future<User?> signInWithGoogle() async {
-    await _initGoogleSignIn();
-
-    final GoogleSignInAccount account =
-        await GoogleSignIn.instance.authenticate();
-
-    final GoogleSignInAuthentication googleAuth = account.authentication;
-
-    final OAuthCredential credential = GoogleAuthProvider.credential(
+  static Future<UserCredential> signInWithGoogle(BuildContext context) async {
+    final userInGoogle = await GoogleSignIn.instance.authenticate();
+    final googleAuth = await userInGoogle.authentication;
+    final credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,
     );
-
-    final UserCredential userCredential =
-        await _auth.signInWithCredential(credential);
-    return userCredential.user;
-  }
-
-  Future<void> sendPhoneCode({
-    required String phoneNumber,
-    required void Function(String verificationId, int? resendToken) onCodeSent,
-    required void Function(FirebaseAuthException e) onError,
-    required void Function(User? user) onAutoVerified,
-    int? resendToken,
-  }) async {
-    await _auth.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      forceResendingToken: resendToken,
-      timeout: const Duration(seconds: 60),
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        final UserCredential result =
-            await _auth.signInWithCredential(credential);
-        onAutoVerified(result.user);
-      },
-      verificationFailed: onError,
-      codeSent: onCodeSent,
-      codeAutoRetrievalTimeout: (String verificationId) {},
+    final userCredential = await FirebaseAuth.instance.signInWithCredential(
+      credential,
     );
+    User? user = userCredential.user;
+    final String role = (user!.email ?? '').toLowerCase().endsWith('@admin.com')
+        ? 'admin'
+        : 'user';
+    FirebaseFirestore.instance
+        .collection('usersCollection')
+        .doc(user.uid)
+        .set({'email': userCredential.user!.email, 'role': role})
+        .then(
+          (value) => ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('User Added Successfully')),
+          ),
+        )
+        .catchError((error) => print("Failed to add user: $error"));
+
+    return userCredential;
   }
 
-  Future<User?> verifyPhoneCode({
-    required String verificationId,
-    required String smsCode,
+  static Future<UserCredential> login({
+    required String email,
+    required String password,
   }) async {
-    final PhoneAuthCredential credential = PhoneAuthProvider.credential(
-      verificationId: verificationId,
-      smsCode: smsCode,
-    );
-    final UserCredential result = await _auth.signInWithCredential(credential);
-    return result.user;
+    try {
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      return credential;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-verification-code') {
+        throw AuthException(mas: 'invalid verification');
+      }
+      if (e.code == 'invalid-email.') {
+        throw AuthException(mas: 'invalid email');
+      } else if (e.code == 'invalid-credential') {
+        throw AuthException(mas: 'invalid credential');
+      }
+      throw AuthException(mas: e.message ?? e.code);
+    }
   }
 
-  Future<void> resetPassword(String email) async {
-    await _auth.sendPasswordResetEmail(email: email);
+  static Future<UserCredential> signUp({
+    required String email,
+    required String password,
+    String ? displayName,
+    required BuildContext context,
+  }) async {
+    try {
+      final credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: email.trim(),
+            password: password.trim(),
+          );
+          await credential.user?.updateDisplayName(displayName);
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(credential.user!.uid)
+          .set({
+            'email': email.trim(),
+            
+          });
+
+      return credential;
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'invalid-verification-code':
+          throw AuthException(mas: 'invalid verification');
+
+        case 'invalid-email':
+          throw AuthException(mas: 'invalid email');
+
+        case 'email-already-in-use':
+          throw AuthException(mas: 'email already exist');
+
+        case 'network-request-failed':
+          throw AuthException(mas: 'network request field');
+
+        case 'weak-password':
+          throw AuthException(mas: 'weak password');
+
+        default:
+          throw AuthException(mas: 'something wrong');
+      }
+    }
   }
 
-  Future<void> signOut() async {
-    await _initGoogleSignIn();
-    await GoogleSignIn.instance.signOut();
-    await _auth.signOut();
+  static void signout() async {
+    FirebaseAuth.instance.signOut();
   }
 
-  User? get currentUser => _auth.currentUser;
+
+
+
+  static Stream<User?>authState(){
+    return FirebaseAuth.instance.userChanges();
+  }
+
+
+  static Future<void> resendPassword(String email){
+    try{
+      return FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+    }on FirebaseAuthException catch(e){
+      switch(e){
+        case 'invalid-email':
+        throw AuthException(mas: 'invalid email');
+
+        default:
+        throw AuthException(mas: e.code);
+      }
+    }
+  }
+
+
+  static Future<void>updateDisplayName(String name)async{
+    try{
+      final user=FirebaseAuth.instance.currentUser;
+      await user?.updateDisplayName(name);
+    }
+    on FirebaseAuthException catch(e){
+      throw AuthException(mas: e.code);
+    }
+  }
 }
