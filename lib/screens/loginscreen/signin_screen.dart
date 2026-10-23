@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart';
+import 'package:workify_prototype/screens/nav_bar.dart';
+import '../../services/auth_service.dart';
 import 'signup_screen.dart';
-import '../screens/home_screen.dart';
+import '../home_screen.dart';
 import 'forgot_password_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'phone_login_screen.dart';
@@ -42,14 +43,15 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => isLoading = true);
 
     try {
-      await _authService.signIn(
+      await AuthService.login(
+
         email: email,
         password: password,
       );
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => const NavBar()),
         (route) => false,
       );
     } on FirebaseAuthException catch (e) {
@@ -67,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => isLoading = true);
 
     try {
-      final user = await _authService.signInWithGoogle();
+      final user = await AuthService.signInWithGoogle(context);
       if (!mounted || user == null) return;
       Navigator.pushAndRemoveUntil(
         context,
@@ -386,12 +388,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             SocialButton(
                           title: 'Phone',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const PhoneLoginScreen(),
-                              ),
-                            );
+                            // Navigator.push(
+                              // context,
+                              // MaterialPageRoute(
+                                // builder: (context) => const PhoneLoginScreen(),
+                              // ),
+                            // );
                           },
                           child: const Icon(
                             Icons.phone_android_rounded,
